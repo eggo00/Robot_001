@@ -1,0 +1,10 @@
+[project]
+name = "robot-001"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.9"
+dependencies = [
+    "flask>=3.1.2",
+    "line-bot-sdk>=3.21.0",
+    "python-dotenv>=1.2.1",
+]
