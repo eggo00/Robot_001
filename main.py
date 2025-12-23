@@ -1,5 +1,6 @@
 import os
 import tempfile
+from datetime import datetime
 from flask import Flask, request, abort
 from linebot.v3 import WebhookHandler
 from linebot.v3.exceptions import InvalidSignatureError
@@ -14,6 +15,7 @@ from linebot.v3.messaging import (
 from linebot.v3.webhooks import MessageEvent, TextMessageContent, AudioMessageContent
 from dotenv import load_dotenv
 from openai import OpenAI
+from notion_client import Client
 
 load_dotenv()
 
@@ -22,6 +24,8 @@ app = Flask(__name__)
 configuration = Configuration(access_token=os.getenv('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+notion = Client(auth=os.getenv('NOTION_TOKEN'))
+notion_database_id = os.getenv('NOTION_DATABASE_ID')
 
 
 @app.route("/callback", methods=['POST'])
@@ -71,10 +75,27 @@ def handle_audio_message(event):
                     language="zh"
                 )
 
+            transcribed_text = transcript.text
+
+            notion.pages.create(
+                parent={"database_id": notion_database_id},
+                properties={
+                    "名稱": {
+                        "title": [
+                            {
+                                "text": {
+                                    "content": transcribed_text
+                                }
+                            }
+                        ]
+                    }
+                }
+            )
+
             line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
-                    messages=[TextMessage(text=transcript.text)]
+                    messages=[TextMessage(text=f"✅ 已儲存到 Notion\n\n{transcribed_text}")]
                 )
             )
         finally:
