@@ -236,6 +236,6 @@ def handle_audio_message(event):
             os.unlink(temp_audio_path)
 
 
-if __name__ == "__main__":
-    port = int(os.getenv('PORT', 8000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+# 移除 if __name__ == "__main__" 區塊
+# 讓 gunicorn 完全接管應用啟動
+# 本地測試時使用: gunicorn main:app --bind 0.0.0.0:8000
